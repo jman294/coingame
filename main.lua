@@ -13,33 +13,42 @@ game.coinHeight = 128
 game.coinX = game.width / 2 - game.coinWidth / 2
 game.coinY = game.height - game.coinHeight - 20
 
-game.coinAngle = .01
+game.normalAngle = 0
+game.coinAngle = game.normalAngle
 
 game.backgroundSpeed = 500
 
 ty = 0
 
 function love.load()
-  love.graphics.setBackgroundColor(0.41, 0.53, 0.97)
+  love.graphics.setBackgroundColor(1, 1, 1)
   love.window.setMode(game.width, game.height, {resizable=false})
-  animation = newAnimation(love.graphics.newImage("coinspritesheet.png"), 25, 128, .3)
+  animation = newAnimation(love.graphics.newImage("coinspritesheet.png"), 47, 128, .3)
 end
 
 function love.update(dt)
-  animation.currentTime = animation.currentTime + dt
-  if animation.currentTime >= animation.duration then
-    animation.currentTime = animation.currentTime - animation.duration
-  end
 
+
+
+  local lTurn = false
   if love.keyboard.isDown("right") then --press the right arrow key to push the ball to the right
-    game.coinAngle = game.coinAngle + .03
+    game.coinAngle = game.coinAngle + .04
   elseif love.keyboard.isDown("left") then --press the left arrow key to push the ball to the left
-    game.coinAngle = game.coinAngle - .03
+    lTurn = true
+    game.coinAngle = game.coinAngle - .04
   end
 
   game.coinX = game.coinX - 1 * (game.backgroundSpeed * dt / math.tan(game.coinAngle + math.pi / 2))
 
-  print(game.coinAngle)
+  if not lTurn then
+    animation.currentTime = animation.currentTime + dt
+    if animation.currentTime >= animation.duration then
+      animation.currentTime = animation.currentTime - animation.duration
+    end
+    game.spriteNum = (math.floor(animation.currentTime / animation.duration * #animation.quads) % 4) + 1
+  else
+    game.spriteNum = 5
+  end
 
   ty = ty + game.backgroundSpeed * dt
 
@@ -50,8 +59,7 @@ end
 
 function love.draw()
   love.graphics.rectangle('fill', 50, ty, 100, 100)
-  local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
-  love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], game.coinX, game.coinY, game.coinAngle, 1, 1, game.coinWidth/2, game.coinHeight/2)
+  love.graphics.draw(animation.spriteSheet, animation.quads[game.spriteNum], game.coinX, game.coinY, game.coinAngle, .5, .5, game.coinWidth/2, game.coinHeight/2)
 end
 
 function newAnimation(image, width, height, duration)
